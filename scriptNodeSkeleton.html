@@ -1,0 +1,79 @@
+<html>
+<header>
+</header>
+
+<script src="dat.gui.min.js"></script>
+
+<script>
+    // rebb/TRSi 2014
+        
+    window.onload = init;
+    var context;
+    var soundSource;
+    var soundBuffer
+    var processor;
+    var position = 0;
+    var b0 = new Array();
+    var y = 0;    
+    var buffer = 512;
+    var delay1 = 16;
+    var delay2 = 32;
+    var mulu1 = 0.24;
+    var mulu2 = 0.04;
+    var controls = new function() {
+        this.time1 = delay1;
+        this.time2 = delay2;
+        this.amount1 = mulu1;
+        this.amount2 = mulu2;
+        }
+        
+    var gui = new dat.GUI();
+    gui.add(controls, 'time1',1,64);
+    gui.add(controls, 'time2',1,64);
+    gui.add(controls, 'amount1',0.0,0.5);
+    gui.add(controls, 'amount2',0.0,0.5);
+     
+    function init() {    
+    context = new webkitAudioContext();
+    playSound('loop.mp3');
+        }
+        
+     function playSound(url) {
+    		// Note: this loads asynchronously
+    		var request = new XMLHttpRequest();
+    		request.open("GET", url, true);
+    		request.responseType = "arraybuffer";
+    
+    		// Our asynchronous callback
+    		request.onload = function() {
+    			var audioData = request.response;
+    			audioGraph(audioData);
+    		};
+         request.send();
+    }
+    
+    	function audioGraph(audioData) {
+            var myscriptnode = context.createScriptProcessor(4096, 1, 1);
+            myscriptnode.onaudioprocess = audioProcess;
+          	soundSource = context.createBufferSource()
+            soundBuffer = context.createBuffer(audioData, false);
+            soundSource.buffer = soundBuffer;
+    	    soundSource.connect(myscriptnode);
+            myscriptnode.connect(context.destination);
+            soundSource.start(0);
+    	}     
+        
+        function audioProcess(event) {
+         var input = event.inputBuffer.getChannelData(0);
+            var output = event.outputBuffer.getChannelData(0);
+            for (var i = 0; i < output.length; i++) {
+                b0[y] = input[i];
+                y++;
+                 output[i] =   input[i] + (b0[y-buffer*Math.round(controls.time1)]*controls.amount1) +
+(b0[y-buffer*Math.round(controls.time2)]*controls.amount2)  * 0.9362;
+                
+            }
+        }
+</script>
+
+</html>
