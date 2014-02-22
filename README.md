@@ -1,5 +1,5 @@
-scriptNodeSkeleton
-==================<br>
+scriptNodeSkeleton<br>
+==================<br><br>
 Skeleton to fast prototype DSP effects in javascript<br>
 Usage:<br>
 Connections are made in audioGraph function<br>
