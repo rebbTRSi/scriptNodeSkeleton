@@ -38,7 +38,7 @@
     source = audioCtx.createBufferSource();
 
     // Create a ScriptProcessorNode with a bufferSize of 4096 and a single input and output channel
-    var scriptNode = audioCtx.createScriptProcessor(512, 1, 1);
+    var scriptNode = audioCtx.createScriptProcessor(4096*2, 1, 1);
     console.log(scriptNode.bufferSize);
 
     // load in an audio track via XHR and decodeAudioData
@@ -67,30 +67,30 @@
       // The input buffer is the song we loaded earlier
        var input = audioProcessingEvent.inputBuffer.getChannelData(0);
        var output =audioProcessingEvent.outputBuffer.getChannelData(0);
-	   	   
+	   	
+		var kenv = 0;
+		var kin = 0;
+		
        for (var i = 0; i < output.length; i++) {
 		
 		var battack = 1 / (controls.attack*44100);
 		var brelease = 1 / (controls.release*44100);
-			
-		var kenv = 0;
-		var kin = 0;
-	
+		
 	for (var q = 0; q < output.length; q++) {
 		kin += input[q] * 32768 ;
 		}
 	
 		kin /= output.length;
-	
-		kin = Math.abs() ;
+		kin = Math.abs(kin) ;
+		kenv = (kin > kenv ? (kenv*(1-battack)+kin*(1-battack)) : kenv*(1-brelease));
 		
-		kenv = (kin > kenv ? (kenv*(1-battack)+kin*battack) : kenv*(1-brelease));
-		var ihedroom =  Math.log10(32768) * 20 ;
-		var kenvd =  ( Math.log10(kenv+0.0001) * 20 ) - ihedroom;
-		var kreduce = (kenvd >= controls.treshold ? (kenvd - controls.treshold)*(controls.ratio-1) : 0)
+		var ihedroom =  20 * Math.log10(32768) ;
+		var kenvd =  20 *  Math.log10(kenv+0.0001) - ihedroom ;
 		
-		var areduce = kreduce;
-		output[i] = input[i]* (Math.pow (10,(areduce/20))  )  ;
+		var kreduce = (kenvd >= controls.treshold ? (kenvd - controls.treshold)*(controls.ratio-1) : 0);
+		var areduce = kreduce / 512;
+		output[i] = input[i] * Math.pow (10,(areduce/20.0)) * 1.2   ;
+		kin = 0;
 	  }
 }
 		getData();
